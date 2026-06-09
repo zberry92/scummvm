@@ -349,6 +349,18 @@ Symbol Lingo::getHandler(const Common::String &name) {
 	if (sym.type != VOIDSYM)
 		return sym;
 
+	// When a sub-window's ancestor script calls a handler that lives in the stage's
+	// movie or its shared cast fall back to searching the stage movie's handler table.
+	Window *stage = g_director->getStage();
+	if (stage && stage != g_director->getCurrentWindow()) {
+		Movie *stageMovie = stage->getCurrentMovie();
+		if (stageMovie && stageMovie != g_director->getCurrentMovie()) {
+			sym = stageMovie->getHandler(name, _state->context ? _state->context->_castLibHint : 0);
+			if (sym.type != VOIDSYM)
+				return sym;
+		}
+	}
+
 	sym.type = VOIDSYM;
 	sym.name = new Common::String(name);
 	return sym;
